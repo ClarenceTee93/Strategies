@@ -171,7 +171,7 @@ def exportPerformanceMetrics(stratRet, baselineRet, stratWeights=None):
     def extractMetrics(x):
         nobs = len(x)
         ret = np.power((1+x).prod(), 12/nobs) - 1
-        vol = np.sqrt(12) * np.std(x)
+        vol = np.sqrt(12) * np.std(x, ddof=1)
         sharpe = (ret - riskFreeRate) / vol
         return ret, vol, sharpe
 

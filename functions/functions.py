@@ -149,7 +149,7 @@ def timeSeriesCV(df, blockSize, numRuns):
     return dictOut
 
 
-def exportPerformanceMetrics(stratRet, baselineRet, stratWeights=None):
+def exportPerformanceMetrics(stratRet, baselineRet, freq='D'):
     pd.options.display.max_colwidth = 100
     """
     Export performance metrics of a strategy (or a portfolio of strategies; weights required) against benchmark buy and hold strategy. 
@@ -159,6 +159,7 @@ def exportPerformanceMetrics(stratRet, baselineRet, stratWeights=None):
     ----------
     stratRet : pd.Series with DateTimeIndex
     baselineRet : pd.Series with DateTimeIndex
+    freq : Annualization factor (12 for monthly returns, 252 for daily returns)
 
     Returns
     -------
@@ -168,23 +169,35 @@ def exportPerformanceMetrics(stratRet, baselineRet, stratWeights=None):
     # Fed funds rate
     riskFreeRate = 0
 
+    if freq == 'D':
+        ann_factor = 252
+    elif freq == 'M':
+        ann_factor = 12
+
     def extractMetrics(x):
         nobs = len(x)
-        ret = np.power((1+x).prod(), 12/nobs) - 1
-        vol = np.sqrt(12) * np.std(x, ddof=1)
+        # Annualized Returns
+        ret = np.power((1+x).prod(), ann_factor/nobs) - 1
+        # Annualized Volatility
+        vol = np.sqrt(ann_factor) * np.std(x, ddof=1)
+        # Sharpe Ratio
         sharpe = (ret - riskFreeRate) / vol
-        return ret, vol, sharpe
+        # Sortino Ratio
+        negRet = x[x < 0]
+        vol_negRet = np.std(negRet, ddof = 1) * np.sqrt(ann_factor)
+        sortino = ret / vol_negRet
+        return ret, vol, sharpe, sortino
 
-    Strat_return, Strat_vol, Strat_sharpe = extractMetrics(stratRet)
+    Strat_return, Strat_vol, Strat_sharpe, Strat_sortino = extractMetrics(stratRet)
     Strat_md = drawdownCharts(stratRet)[0]
     Strat_r_to_md = abs(Strat_return / Strat_md)
-    Bench_return, Bench_vol, Bench_sharpe  = extractMetrics(baselineRet)
+    Bench_return, Bench_vol, Bench_sharpe, Bench_sortino  = extractMetrics(baselineRet)
     Bench_md  = drawdownCharts(baselineRet)[0]
     Bench_r_to_md = abs(Bench_return / Bench_md)
     
-    Output_dict={'Performance Metrics':['CAGR %','Volatility','Sharpe Ratio','Max Drawdown %','Return/MaxDrawdown'],
-            'Strategy':['{:.2f}%'.format(Strat_return*100),'{:.2f}%'.format(Strat_vol*100),'{:.2f}'.format(Strat_sharpe),'{:.2f}%'.format(Strat_md*100),'{:.2f}'.format(Strat_r_to_md)],
-            'Benchmark':['{:.2f}%'.format(Bench_return*100),'{:.2f}%'.format(Bench_vol*100),'{:.2f}'.format(Bench_sharpe),'{:.2f}%'.format(Bench_md*100),'{:.2f}'.format(Bench_r_to_md)]}
+    Output_dict={'Performance Metrics':['CAGR %','Volatility','Sharpe Ratio', 'Sortino Ratio', 'Max Drawdown %','Return/MaxDrawdown'],
+            'Strategy':['{:.2f}%'.format(Strat_return*100),'{:.2f}%'.format(Strat_vol*100),'{:.2f}'.format(Strat_sharpe),'{:.2f}'.format(Strat_sortino),'{:.2f}%'.format(Strat_md*100),'{:.2f}'.format(Strat_r_to_md)],
+            'Benchmark':['{:.2f}%'.format(Bench_return*100),'{:.2f}%'.format(Bench_vol*100),'{:.2f}'.format(Bench_sharpe),'{:.2f}'.format(Bench_sortino),'{:.2f}%'.format(Bench_md*100),'{:.2f}'.format(Bench_r_to_md)]}
 
     start = str(stratRet.index[0].date())
     end = str(stratRet.index[-1].date())

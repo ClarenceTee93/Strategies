@@ -34,6 +34,7 @@ def computeMomentum(df, numMths, start, end, asset_name):
  
     Parameters
     ----------
+    df : dataframe with datetimeindex and a column for Price
     numMths : int
     start : str , in the form YYYY-MM-DD
     end : str , in the form YYYY-MM-DD
@@ -43,8 +44,9 @@ def computeMomentum(df, numMths, start, end, asset_name):
     -------
     df : dataframe
     """
+    
+    
     df = df.copy()
-    # df = pd.DataFrame(yf.download(asset_ticker, start=start, end=end)['Adj Close'])
     df.rename(columns = {df.columns[0]:'Price'}, inplace=True)
     
     sDate = datetime.strptime(start, "%Y-%m-%d")
@@ -168,8 +170,8 @@ def exportPerformanceMetrics(stratRet, baselineRet, stratWeights=None):
 
     def extractMetrics(x):
         nobs = len(x)
-        ret = np.power((1+x).prod(), 252/nobs) - 1
-        vol = np.sqrt(252) * np.std(x)
+        ret = np.power((1+x).prod(), 12/nobs) - 1
+        vol = np.sqrt(12) * np.std(x)
         sharpe = (ret - riskFreeRate) / vol
         return ret, vol, sharpe
 
@@ -213,7 +215,7 @@ def drawdownCharts(assetReturns, benchmark=None, includeBenchmark=None, showPlot
     assetCumRet = (assetReturns + 1).cumprod()
     assetCumRet.dropna(inplace=True)
     highWater = np.maximum.accumulate(assetCumRet)
-    dVal = assetCumRet.reset_index().date.values
+    dVal = assetCumRet.reset_index().Date.values
     fontSizeAll = 10
 
     fig, ax = plt.subplots(4,1,figsize=(20, 15), constrained_layout=True, sharex=True)
@@ -230,7 +232,7 @@ def drawdownCharts(assetReturns, benchmark=None, includeBenchmark=None, showPlot
     ax[0].xaxis.set_tick_params(which='both', labelbottom=True)
 
     drawdown = (assetCumRet - highWater) / highWater
-    largestDD = drawdown[drawdown == drawdown.min()].reset_index().date.values
+    largestDD = drawdown[drawdown == drawdown.min()].reset_index().Date.values
     endPt = drawdown[drawdown == drawdown.min()].values
     
     # Deepest Lake
@@ -276,14 +278,14 @@ def drawdownCharts(assetReturns, benchmark=None, includeBenchmark=None, showPlot
             benchmkCum = (benchmark + 1).cumprod()
             benchmkCum.dropna(inplace=True)
             benchmkCum_highWater = np.maximum.accumulate(benchmkCum)
-            benchmkCum_dval = benchmkCum.reset_index().date.values
+            benchmkCum_dval = benchmkCum.reset_index().Date.values
             ax[0].plot(benchmkCum, label="Returns (Benchmark)", color='darkorange', linewidth=1.5)
             ax[0].plot(benchmkCum_highWater, label="High water mark (Benchmark)", color='black', linewidth=1.5)
             ax[0].fill_between(benchmkCum_dval, benchmkCum.values, benchmkCum_highWater.values, alpha=0.25, color="darkorange")
             ax[0].legend(loc="best", fontsize=fontSizeAll)
 
             drawdown_benchmk = (benchmkCum - benchmkCum_highWater) / benchmkCum_highWater
-            largestDD_benchmk = drawdown_benchmk[drawdown_benchmk == drawdown_benchmk.min()].reset_index().date.values
+            largestDD_benchmk = drawdown_benchmk[drawdown_benchmk == drawdown_benchmk.min()].reset_index().Date.values
             endPt_benchmk = drawdown_benchmk[drawdown_benchmk == drawdown_benchmk.min()].values
             ax[1].plot(drawdown_benchmk, label="Drawdown (Benchmark)", color="darkorange")
             ax[1].fill_between(benchmkCum_dval, drawdown_benchmk.values, np.zeros(np.shape(benchmkCum)[0]), alpha=0.25, color="darkorange")
@@ -300,7 +302,8 @@ def drawdownCharts(assetReturns, benchmark=None, includeBenchmark=None, showPlot
             ax[2].legend(loc="best", fontsize=fontSizeAll)
 
             # Plot relative performance
-            ax[3].plot(assetCumRet/benchmkCum, label="Relative Performance (Strategy versus Specified Benchmark)", linewidth=1.5, color="black")
+            bnckmk_nm = benchmark.name
+            ax[3].plot(assetCumRet/benchmkCum, label="Relative Performance (Strategy versus " + bnckmk_nm + ")", linewidth=1.5, color="black")
             ax[3].legend(loc="best", fontsize=fontSizeAll)
             ax[3].grid(axis='y', linewidth=1.5, alpha=0.5)
             ax[3].set_xlabel("DateTime", fontsize=fontSizeAll)

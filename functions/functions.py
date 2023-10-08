@@ -211,7 +211,7 @@ def exportPerformanceMetrics(stratRet, baselineRet, freq='D'):
 def drawdownCharts(assetReturns, benchmark=None, includeBenchmark=None, showPlot=False):
     """
     Function to plot out drawdown evaluation, input has to be a pd.Series of simple returns, noncumulative. 
-    Plot is exported if not shown with option to include benchmark performance.
+    Plot is exported if not shown. Option added to include benchmark performance.
 
     Parameters
     ----------
@@ -333,47 +333,3 @@ def drawdownCharts(assetReturns, benchmark=None, includeBenchmark=None, showPlot
         return endPt
 
 
-def computePerformance(df):
-    """
-    Compute the performance of any asset given its price, column of price is named as 'PX_LAST' -> to change if data is not pulled from BBG
-
-    Parameters
-    ----------
-    df : dataframe of asset price, with date as index
-
-    Returns
-    -------
-    dataframe of performance metrics
-    
-    """
-    # mtd = df.PX_LAST.pct_change()
-    start_dt = df.index[0]
-    end_dt = df.index[-1]
-    mtd = df.copy()
-    mtd.name = 'MTD'
-
-    mtdPlusOne = (1 + mtd)
-    mtdPlusOne.name = '1+MTD'
-
-    valFromBase = mtdPlusOne.cumprod() * 100
-    valFromBase.fillna(100, inplace=True)
-    valFromBase.name = 'CummulativeVal'
-
-    vol = mtd.expanding(2).std() * np.sqrt(252)
-    vol.name = 'Vol'
-
-    yoy = (df / df.shift(252)) - 1
-    yoy.name = 'YoY Return'
-
-    t12m_vol = mtd.rolling(252).std() * np.sqrt(252)
-    t12m_vol.name = 'T12M Vol'
-
-    negExcessRet = mtd.mask(mtd > 0, np.NaN)
-    negExcessRet.name = 'Negative Excess Return'
-
-    vol_negExcessRet = negExcessRet.expanding(1).std() * np.sqrt(252)
-    vol_negExcessRet.name = 'Vol of Neg Excess Return'
-
-    output_df = pd.concat([df, valFromBase, mtd, mtdPlusOne, vol, yoy, t12m_vol, negExcessRet, vol_negExcessRet], axis=1)
-
-    return output_df

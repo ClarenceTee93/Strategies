@@ -196,8 +196,8 @@ def exportPerformanceMetrics(stratRet, baselineRet, freq='D'):
     Bench_r_to_md = abs(Bench_return / Bench_md)
     
     Output_dict={'Performance Metrics':['CAGR %','Volatility','Sharpe Ratio', 'Sortino Ratio', 'Max Drawdown %','Return/MaxDrawdown'],
-            'Strategy':['{:.2f}%'.format(Strat_return*100),'{:.2f}%'.format(Strat_vol*100),'{:.2f}'.format(Strat_sharpe),'{:.2f}'.format(Strat_sortino),'{:.2f}%'.format(Strat_md*100),'{:.2f}'.format(Strat_r_to_md)],
-            'Benchmark':['{:.2f}%'.format(Bench_return*100),'{:.2f}%'.format(Bench_vol*100),'{:.2f}'.format(Bench_sharpe),'{:.2f}'.format(Bench_sortino),'{:.2f}%'.format(Bench_md*100),'{:.2f}'.format(Bench_r_to_md)]}
+            str(stratRet.name):['{:.2f}%'.format(Strat_return*100),'{:.2f}%'.format(Strat_vol*100),'{:.2f}'.format(Strat_sharpe),'{:.2f}'.format(Strat_sortino),'{:.2f}%'.format(Strat_md*100),'{:.2f}'.format(Strat_r_to_md)],
+            str(baselineRet.name):['{:.2f}%'.format(Bench_return*100),'{:.2f}%'.format(Bench_vol*100),'{:.2f}'.format(Bench_sharpe),'{:.2f}'.format(Bench_sortino),'{:.2f}%'.format(Bench_md*100),'{:.2f}'.format(Bench_r_to_md)]}
 
     start = str(stratRet.index[0].date())
     end = str(stratRet.index[-1].date())

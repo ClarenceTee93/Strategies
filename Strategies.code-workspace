@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../../SMU_MSFE/Regime-Analysis-Positioning/Regime-Analysis-Positioning"
 		}
 	],
 	"settings": {}

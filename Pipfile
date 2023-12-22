@@ -9,8 +9,14 @@ pandas = "*"
 matplotlib = "*"
 scikit-learn = "*"
 statsmodels = "*"
+rateslib = "*"
+quantstats = "*"
+ipykernel = "*"
+fredapi = "*"
+autograd = "*"
 
 [dev-packages]
+ipykernel = "*"
 
 [requires]
 python_version = "3.11"
